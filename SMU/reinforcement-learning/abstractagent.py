@@ -26,6 +26,21 @@ class AbstractAgent(ABC):
         """
         pass
 
+    def get_action(self, observation: BlackjackObservation, terminal: bool) -> int:
+        pass
+
+    def test(self):
+        for i in range(self.number_of_epochs):
+            print(i, flush=True)
+            observation = self.env.reset()
+            terminal = False
+            reward = 0
+            self._render_game()
+            while not terminal:
+                action = self.get_action(observation, terminal)
+                observation, reward, terminal, _ = self.env.step(action)
+                self._render_game()
+
     def _render_game(self):
         if self.verbose:
             self.env.render()

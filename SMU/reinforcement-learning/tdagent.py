@@ -19,15 +19,22 @@ class TDAgent(AbstractAgent):
     def __init__(self, env: BlackjackEnv, number_of_epochs: int, alpha: float = 100, gamma: float = 0.9,
                  verbose: bool = False):
         super().__init__(env, number_of_epochs, verbose=verbose)
-        sf1 = np.zeros((State.PLAYER_NUM_STATES, State.DEALER_NUM_STATES))
-        sf2 = np.zeros((State.PLAYER_NUM_STATES, State.DEALER_ONE_CARD_NUM_STATES, State.HAS_ACE_NUM_STATES))
-        su1 = np.zeros((State.PLAYER_NUM_STATES, State.DEALER_NUM_STATES))
-        su2 = np.zeros((State.PLAYER_NUM_STATES, State.DEALER_ONE_CARD_NUM_STATES, State.HAS_ACE_NUM_STATES))
-
-        self.state_freq = StateMap(0, sf1, sf2)
-        self.state_util = StateMap(0, su1, su2)
+        self.state_freq = StateMap(0, 0, np.zeros((State.PLAYER_NUM_STATES, State.DEALER_ONE_CARD_NUM_STATES,
+                                                   State.HAS_ACE_NUM_STATES)))
+        self.state_util = StateMap(0, 0, np.zeros((State.PLAYER_NUM_STATES, State.DEALER_ONE_CARD_NUM_STATES,
+                                                   State.HAS_ACE_NUM_STATES)))
         self.alpha = alpha
         self.gamma = gamma
+        self.stats_index = {
+            '(4,2,0)': (0, 0, 0),
+            '(8,6,0)': (4, 4, 0),
+            '(16,7,1)': (12, 5, 1)
+        }
+        self.stats = {
+            '(4,2,0)': [0],
+            '(8,6,0)': [0],
+            '(16,7,1)': [0]
+        }
 
     def train(self):
         for i in range(self.number_of_epochs):
@@ -35,8 +42,9 @@ class TDAgent(AbstractAgent):
             observation = self.env.reset()
             self._render_game()
             terminal = False
+            self._collect_stats()
             while not terminal:
-                action = self.receive_observation_and_get_action(observation, terminal)
+                action = self.get_action(observation, terminal)
                 next_observation, reward, terminal, _ = self.env.step(action)
                 self._render_game()
                 state = State.obs_to_state(observation)
@@ -47,6 +55,10 @@ class TDAgent(AbstractAgent):
     def alpha_f(self, n):
         return self.alpha / (self.alpha - 1 + n)
 
+    def _collect_stats(self):
+        for key, val in self.stats_index.items():
+            self.stats[key].append(self.state_util.array[2][val])
+
     def _update_utility(self, state: State, next_state: State, reward: int):
         state_idx = state.state_index()
         next_state_idx = next_state.state_index()
@@ -54,7 +66,7 @@ class TDAgent(AbstractAgent):
         self.state_util[state_idx] = self.state_util[state_idx] + self.alpha_f(self.state_freq[state_idx]) * (
                 reward + self.gamma * self.state_util[next_state_idx] - self.state_util[state_idx])
 
-    def receive_observation_and_get_action(self, observation: BlackjackObservation, terminal: bool) -> int:
+    def get_action(self, observation: BlackjackObservation, terminal: bool) -> int:
         return BlackjackAction.HIT.value if observation.player_hand.value() < 17 else BlackjackAction.STAND.value
 
     def get_hypothesis(self, observation: BlackjackObservation, terminal: bool) -> float:

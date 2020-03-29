@@ -11,16 +11,7 @@ class DealerAgent(AbstractAgent):
     """
 
     def train(self):
-        for i in range(self.number_of_epochs):
-            print(i)
-            observation = self.env.reset()
-            terminal = False
-            reward = 0
-            while not terminal:
-                # self.env.render()
-                action = self.make_step(observation, reward, terminal)
-                observation, reward, terminal, _ = self.env.step(action)
-            # self.env.render()
+        pass
 
-    def make_step(self, observation: BlackjackObservation, reward: float, terminal: bool) -> int:
+    def get_action(self, observation: BlackjackObservation, terminal: bool) -> int:
         return BlackjackAction.HIT.value if observation.player_hand.value() < 17 else BlackjackAction.STAND.value

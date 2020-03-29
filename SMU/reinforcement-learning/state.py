@@ -17,11 +17,9 @@ class StateIndex:
 
 
 class StateMap:
-    """
-    This class appeared due to confusion between AIMA book and Sutton. Ideally we do not need to store terminal states,
-    as their q and count == 0, when using Sutton pseudo code.
-    """
-    def __init__(self, busted: Union[int, np.ndarray], dealer_played: np.ndarray, game_on: np.ndarray):
+
+    def __init__(self, busted: Union[int, np.ndarray], dealer_played: Union[int, np.ndarray], game_on: np.ndarray):
+        assert type(busted) == type(dealer_played)
         self.busted_type = type(busted)
         self.array = {
             StateIndex.BUSTED: busted,
@@ -33,12 +31,12 @@ class StateMap:
         if isinstance(item, tuple):
             return self.array[item[0]][item[1]]
 
-        if item.type == StateIndex.BUSTED and self.busted_type is not np.ndarray:
+        if item.type != StateIndex.GAME_ON and self.busted_type is not np.ndarray:
             return self.array[item.type]
         return self.array[item.type][item.index]
 
     def __setitem__(self, key: StateIndex, value):
-        if key.type == StateIndex.BUSTED and self.busted_type is not np.ndarray:
+        if key.type != StateIndex.GAME_ON and self.busted_type is not np.ndarray:
             self.array[key.type] = value
         else:
             self.array[key.type][key.index] = value
@@ -58,6 +56,7 @@ class StateMap:
         game_on = np.load(os.path.join(path, group, 'file_2.npy'))
         if busted.size == 1:
             busted = int(busted)
+            dealer_played = int(dealer_played)
         return StateMap(busted, dealer_played, game_on)
 
 
@@ -71,7 +70,7 @@ class State:
 
     def __init__(self, player_sum, dealer_played, dealer_sum, has_active_ace):
         self.player_sum = player_sum if player_sum <= 21 else -1
-        self.dealer_sum = dealer_sum if dealer_sum <= 21 else -1
+        self.dealer_sum = dealer_sum
         self.has_active_ace = has_active_ace
         self.dealer_played = dealer_played
 
@@ -80,10 +79,10 @@ class State:
         if self.player_sum == -1:
             return StateIndex(StateIndex.BUSTED, None)
         if self.dealer_played:
-            player_idx = self.player_sum - State.__TWO_CARDS_LOW
-            dealer_idx = State.DEALER_NUM_STATES - 1 if self.dealer_sum == -1 else \
-                self.dealer_sum - State.__TWO_CARDS_LOW
-            return StateIndex(StateIndex.DEALER_PLAYED, (player_idx, dealer_idx))
+            # player_idx = self.player_sum - State.__TWO_CARDS_LOW
+            # dealer_idx = State.DEALER_NUM_STATES - 1 if self.dealer_sum == -1 else \
+            #     self.dealer_sum - State.__TWO_CARDS_LOW
+            return StateIndex(StateIndex.DEALER_PLAYED, None)
         # casual states
         player_idx = self.player_sum - State.__TWO_CARDS_LOW
         dealer_idx = self.dealer_sum - State.__ONE_CARD_LOW

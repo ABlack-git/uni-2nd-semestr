@@ -21,25 +21,42 @@ class SarsaAgent(AbstractAgent):
                  gamma: float = 0.9, verbose: bool = False):
         super().__init__(env, number_of_epochs, verbose=verbose)
         self.num_actions = len(BlackjackAction)
-        sa1 = np.zeros((State.PLAYER_NUM_STATES, State.DEALER_NUM_STATES, self.num_actions))
-        sa2 = np.zeros((State.PLAYER_NUM_STATES, State.DEALER_ONE_CARD_NUM_STATES, State.HAS_ACE_NUM_STATES,
-                        self.num_actions))
-        q1 = np.zeros((State.PLAYER_NUM_STATES, State.DEALER_NUM_STATES, self.num_actions))
-        q2 = np.zeros((State.PLAYER_NUM_STATES, State.DEALER_ONE_CARD_NUM_STATES, State.HAS_ACE_NUM_STATES,
+        sa = np.zeros((State.PLAYER_NUM_STATES, State.DEALER_ONE_CARD_NUM_STATES, State.HAS_ACE_NUM_STATES,
                        self.num_actions))
-        self.sa_counter = StateMap(np.zeros(self.num_actions), sa1, sa2)
-        self.q = StateMap(np.zeros(self.num_actions), q1, q2)
+        q = np.zeros((State.PLAYER_NUM_STATES, State.DEALER_ONE_CARD_NUM_STATES, State.HAS_ACE_NUM_STATES,
+                      self.num_actions))
+        self.sa_counter = StateMap(np.zeros(self.num_actions), np.zeros(self.num_actions), sa)
+        self.q = StateMap(np.zeros(self.num_actions), np.zeros(self.num_actions), q)
         self.eps = eps
         self.alpha = alpha
         self.gamma = gamma
+        self.stats_index = {
+            '(4,2,0,0)': (0, 0, 0, 0),
+            '(4,2,0,1)': (0, 0, 0, 1),
+            '(12,10,0,0)': (8, 8, 0, 0),
+            '(12,19,0,1)': (8, 8, 0, 1),
+            '(16,7,1,0)': (12, 5, 1, 0),
+            '(16,7,1,1)': (12, 5, 1, 1)
+        }
+        self.stats = {
+            '(4,2,0,0)': [0],
+            '(4,2,0,1)': [0],
+            '(12,10,0,0)': [0],
+            '(12,19,0,1)': [0],
+            '(16,7,1,0)': [0],
+            '(16,7,1,1)': [0]
+        }
 
-    def get_action(self, state_idx):
+    def get_action(self, observation: BlackjackObservation, terminal: bool):
+        return self._get_action(State.obs_to_state(observation).state_index())
+
+    def _get_action(self, state_idx):
         action = np.argmax(self.q[state_idx])
         return action
 
     def _get_train_action(self, state_idx, n):
         if np.random.rand() > self._eps_f(n):
-            return self.get_action(state_idx)
+            return self._get_action(state_idx)
         else:
             return np.random.randint(self.num_actions)
 
@@ -51,6 +68,10 @@ class SarsaAgent(AbstractAgent):
         # eps = self.eps - k * n
         # return eps if eps >= 0 else 0
         return self.eps / (self.eps - 1 + n)
+
+    def _collect_stats(self):
+        for key, val in self.stats_index.items():
+            self.stats[key].append(self.q.array[2][val])
 
     def _update_q(self, state: State, action: int, reward: int, next_state: State, next_action: int):
         state_idx = state.state_index_with_action(action)
@@ -68,6 +89,7 @@ class SarsaAgent(AbstractAgent):
             terminal = False
             action = self._get_train_action(state.state_index(), n)
             # action = action.value
+            self._collect_stats()
             while not terminal:
                 next_observation, reward, terminal, _ = self.env.step(action)
                 self._render_game()

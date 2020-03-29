@@ -1,13 +1,23 @@
 import matplotlib
-
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import numpy as np
+import os
 from typing import List
 
-import numpy as np
+matplotlib.use('Agg')
 
 
-def evaluate(rewards: List[float], name, simp_factor=1000, exp_factor=0.7):
+def evaluate_stats(stats: dict, name, n, path='plots'):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    for key, val in stats.items():
+        plt.plot(simple_moving_average(val, n), label=key)
+    plt.legend(loc='upper left')
+    plt.savefig(os.path.join(path, f'stats_moving_average_{name}.pdf'))
+    plt.close()
+
+
+def evaluate(rewards: List[float], name='', simp_factor=100, exp_factor=0.7, plot=True):
     # TODO implement your own code here if you want to
     # or alternatively you can modify the existing code
     # if you reuse the averaging, you should probably change the parameters
@@ -20,8 +30,9 @@ def evaluate(rewards: List[float], name, simp_factor=1000, exp_factor=0.7):
 
     # to use this plot function you have to install matplotlib
     # use conda install matplotlib
-    plot_series(simple_moving_average(rewards, simp_factor), 'simple', name)
-    plot_series(exponential_moving_average(rewards, exp_factor), 'exp', name)
+    if plot:
+        plot_series(simple_moving_average(rewards, simp_factor), 'simple', name)
+        plot_series(exponential_moving_average(rewards, exp_factor), 'exp', name)
 
 
 # check Wikipedia: https://en.wikipedia.org/wiki/Moving_average
@@ -48,7 +59,9 @@ def exponential_moving_average(x: List[float], alpha: float) -> float:
 # you can use this function to get a plot
 # you need first to install matplotlib (conda install matplotlib)
 # and then uncomment this function and lines 1-3
-def plot_series(arr, avg_type, name):
+def plot_series(arr, avg_type, name, path='plots'):
+    if not os.path.exists(path):
+        os.makedirs(path)
     plt.plot(arr)
-    plt.savefig(f'{avg_type}_moving_average_{name}.pdf')
+    plt.savefig(os.path.join(path, f'{avg_type}_moving_average_{name}.pdf'))
     plt.close()

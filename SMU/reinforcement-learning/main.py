@@ -21,6 +21,61 @@ def get_env() -> Monitor:
     return wrappers.Monitor(environment, 'smuproject4', force=True, video_callable=False)
 
 
+def train():
+    simp_factor = lambda x: int(0.01 * x)
+    exp_factor = 0.01
+    # Train TD
+    number_of_epochs_td = 250000
+    env_td = get_env()
+    agent_td = TDAgent(env_td, number_of_epochs_td, verbose=False)
+    agent_td.train()
+    agent_td.save()
+
+    # Train SARSA
+    number_of_epochs_s = 500000
+    env_sarsa = get_env()
+    agent_sarsa = SarsaAgent(env_sarsa, number_of_epochs_s)
+    agent_sarsa.train()
+    agent_sarsa.save()
+
+    # Evaluate training
+    evaluate(env_td.get_episode_rewards(), 'td', simp_factor=simp_factor(number_of_epochs_td), exp_factor=exp_factor)
+    evaluate(env_sarsa.get_episode_rewards(), 'sarsa', simp_factor=simp_factor(number_of_epochs_s),
+             exp_factor=exp_factor)
+    evaluate_stats(agent_td.stats, 'td', simp_factor(number_of_epochs_td))
+    evaluate_stats(agent_sarsa.stats, 'sarsa', simp_factor(number_of_epochs_s))
+    print(agent_td)
+    print(agent_sarsa)
+
+
+def test():
+    number_of_epochs = 50000
+    env_td = get_env()
+    agent_td = TDAgent(env_td, number_of_epochs, verbose=False)
+    agent_td.load()
+    env_sarsa = get_env()
+    agent_sarsa = SarsaAgent(env_sarsa, number_of_epochs)
+    agent_sarsa.load()
+    env_dealer = get_env()
+    agent_dealer = DealerAgent(env_dealer, number_of_epochs)
+    env_rand = get_env()
+    agent_rand = RandomAgent(env_rand, number_of_epochs)
+
+    agent_sarsa.test()
+    agent_dealer.test()
+    agent_rand.test()
+
+    print("SARSA results")
+    evaluate(env_sarsa.get_episode_rewards(), plot=False)
+    print("Dealer results")
+    evaluate(env_dealer.get_episode_rewards(), plot=False)
+    print("Random results")
+    evaluate(env_rand.get_episode_rewards(), plot=False)
+
+    print(agent_td)
+    print(agent_sarsa)
+
+
 if __name__ == "__main__":
     # Registers the environment so that it can be used
     register(
@@ -31,30 +86,5 @@ if __name__ == "__main__":
     # IMPORTANT: do not modify the code above this line! ###
     # ######################################################
 
-    # here you can play with the code yourself
-    # for example you may want to split the code to two phases - training and testing
-    # or you may want to compare two agents
-    # feel free to modify the number of games played (highly recommended!)
-    # ... or whatever
-
-    number_of_epochs = 100000  # TODO do not forget to change the number of epochs
-
-    # agent: AbstractAgent = RandomAgent(env, number_of_epochs)
-    # agent: AbstractAgent = DealerAgent(env, number_of_epochs)
-    env_td = get_env()
-    agent_td = TDAgent(env_td, number_of_epochs, verbose=False)
-    # env_sarsa = get_env()
-    # agent_sarsa = SarsaAgent(env_sarsa, number_of_epochs)
-
-    agent_td.train()
-    agent_td.save()
-    # agent_sarsa.train()
-    # agent_sarsa.save()
-    simp_factor = 500
-    exp_factor = 0.1
-    # in evaluate.py are some ideas that you might want to use to evaluate the agent
-    # feel free to modify the code as you want to
-    evaluate(env_td.get_episode_rewards(), 'td', simp_factor=simp_factor, exp_factor=exp_factor)
-    print("")
-    # evaluate(env_sarsa.get_episode_rewards(), 'sarsa', simp_factor=simp_factor, exp_factor=exp_factor)
-    # print(agent_sarsa)
+    # train()
+    test()
