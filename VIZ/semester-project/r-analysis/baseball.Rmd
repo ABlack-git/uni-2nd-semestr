@@ -1,0 +1,24 @@
+---
+title: "baseball"
+author: "Andrii Zakharchenko"
+date: "4/16/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r baseball}
+library(Lahman)
+library(dplyr)
+```
+
+```{r}
+data("Batting")
+head(Batting)
+bstats = battingStats()
+data(pitchingLabels)
+```
