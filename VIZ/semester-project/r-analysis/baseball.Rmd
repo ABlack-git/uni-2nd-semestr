@@ -17,8 +17,43 @@ library(dplyr)
 ```
 
 ```{r}
-data("Batting")
-head(Batting)
-bstats = battingStats()
-data(pitchingLabels)
+battStats <- battingStats(data = Batting)
+```
+Filter by leagues and years, add labels.
+```{r}
+batting <- battStats %>% rename_at(vars(battingLabels[,'variable']), ~ battingLabels[,'label']) %>% filter(League %in% c('NL', 'AL') & Year >= 1900)
+pitchingLabels[pitchingLabels$variable == 'IPOuts', 'variable'] <- 'IPouts'
+pitching <- Pitching %>% rename_at(vars(pitchingLabels[,'variable']), ~ pitchingLabels[,'label']) %>% filter(League %in% c('NL', 'AL') & Year >= 1900)
+fieldingLabels[fieldingLabels$variable == 'Pos', 'variable'] <- 'POS'
+fielding <- Fielding %>% rename_at(vars(fieldingLabels[,'variable']), ~ fieldingLabels[,'label']) %>% filter(League %in% c('NL', 'AL') & Year >= 1900)
+
+master <- Master %>% select(playerID, nameFirst, nameLast, birthDate, deathDate) %>% 
+  rename('Player ID code' = playerID, 'First Name' = nameFirst, 'Last Name' = nameLast, 'Date Of Birth' = birthDate, 'Date Of Death'= deathDate)
+teams <- Teams %>% filter(lgID %in% c('NL', 'AL') & yearID >= 1900) %>% select(yearID, teamID, name, lgID) %>%
+  rename('Year' = yearID, 'Team' = teamID, 'Team Name' = name, 'League' = lgID)
+appearances <- Appearances %>% filter(lgID %in% c('NL', 'AL') & yearID >= 1900)
+
+```
+
+Join B/P/F/A tables with master and teams
+```{r}
+battingJoined <- batting %>% left_join(master, by="Player ID code") %>% left_join(teams, by=c("Year", "Team", "League"))
+pitchingJoined <- pitching %>% left_join(master, by="Player ID code") %>% left_join(teams, by=c("Year", "Team", "League"))
+fieldingJoined <- fielding %>% left_join(master, by="Player ID code") %>% left_join(teams, by=c("Year", "Team", "League"))
+
+```
+
+Prepare tables with important stats
+```{r}
+
+
+```
+
+Save
+```{r}
+
+write.csv(battingJoined, '/Users/zakharca/Documents/Study/2nd-semester-oi/VIZ/semester-project/data/batting.csv')
+write.csv(pitchingJoined, '/Users/zakharca/Documents/Study/2nd-semester-oi/VIZ/semester-project/data/pitching.csv')
+write.csv(fieldingJoined, '/Users/zakharca/Documents/Study/2nd-semester-oi/VIZ/semester-project/data/fielding.csv')
+
 ```
