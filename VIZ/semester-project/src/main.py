@@ -16,7 +16,8 @@ col_names = ('Runs', 'Hits', 'Homeruns', 'BA', 'PA', 'TB', 'SlugPct', 'OBP', 'OP
 app = QtGui.QApplication([])
 plot = SharedPlotsTrellis("Demo")
 data = {p1_name: player_1, p2_name: player_2}
-plot.plot('Year', col_names, cols=3, **data)
+plot.plot('Year', col_names, **data)
+plot.add_legend()
 plot.show()
 if __name__ == '__main__':
     import sys
