@@ -1,0 +1,2 @@
+modgrammar>=0.10
+pycosat>=0.6.3
