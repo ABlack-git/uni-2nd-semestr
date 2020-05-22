@@ -70,21 +70,22 @@ class Agent:
         literals: List[str] = [self._pred_player_cards(0, *hand_p0), self._pred_player_cards(1, *hand_p1)]
         hand_vals_0 = [card.value for card in hand_p0]
         hand_vals_1 = [card.value for card in hand_p1]
+        # compare sum of cards with greater or equal
         literals.append(self._greater_or_equal(sum(hand_vals_0), sum(hand_vals_1), self._func_sum(*func_val_0_list),
                                                self._func_sum(*func_val_1_list)))
-        # equal by shapes and values
+        # equal by shapes and values by equal
         for i, (card0, card1) in enumerate(zip(hand_p0, hand_p1)):
             if i != 0:
+                # compare first card shape with other cards shapes by equal
                 literals.append(self._equal(hand_p0[0].shape, card0.shape, self._func_shape(hand_p0[0]),
                                             self._func_shape(card0)))
-                # literals.append(self._equal(hand_p1[0].shape, card1.shape, self._func_shape(hand_p1[0]),
-                #                             self._func_shape(card1)))
+
             for j, (c0, c1) in enumerate(zip(hand_p0, hand_p1)):
                 if j <= i:
                     continue
+                # compare values of all cards
                 literals.append(self._equal(card0.value, c0.value, self._func_val(card0), self._func_val(c0)))
-                # literals.append(self._equal(card1.value, c1.value, self._func_val(card1), self._func_val(c1)))
-
+        # compare max cards with greater or equal
         literals.append(self._greater_or_equal(max(hand_vals_0), max(hand_vals_1), self._func_max(*func_val_0_list),
                                                self._func_max(*func_val_1_list)))
         return parseClause(', '.join(literals))
@@ -115,9 +116,6 @@ class Agent:
 
     def _pred_player_cards(self, player: int, *cards: 'Card'):
         return f'CardsP{player}({", ".join([card.var for card in cards])})'
-
-    def _card_pred(self, card: 'Card'):
-        return f'Card({card.var},{card.value},{card.shape})'
 
     def _func_val(self, card: 'Card') -> str:
         return f'val({card.var})'

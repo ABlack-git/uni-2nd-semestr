@@ -5,7 +5,7 @@ from student.rules import HighCard, AtLeastOnePair
 
 def main():
     samples = 500
-    oracle = Oracle(handSize=3, cards=10, shapes=['BELLS', 'HEARTS'], samples=samples, rule=HighCard())
+    oracle = Oracle(handSize=3, cards=13, shapes=['BELLS', 'HEARTS', 'ClUBS'], samples=samples, rule=AtLeastOnePair())
     agent = Agent()
 
     for sample in oracle:
