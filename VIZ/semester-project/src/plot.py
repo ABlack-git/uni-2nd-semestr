@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QWidget, QSlider, QLabel, QHBoxLayout
 from PyQt5.QtCore import Qt
 
 
-class CustomStyle:
+class Style:
     def __init__(self):
         self.line_width = None
         self.line_pen = None
@@ -20,10 +20,10 @@ class CustomStyle:
         self.symbol_brush = None
 
 
-class CustomPlot(pg.PlotItem):
+class CustomGraph(pg.PlotItem):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.style = CustomStyle()
+        self.style = Style()
         self.showGrid(y=True, alpha=0.5)
         self.setMouseEnabled(x=False, y=False)
 
@@ -42,7 +42,7 @@ class CustomPlot(pg.PlotItem):
 
 
 class BaseCustomItem(pg.GraphicsObject):
-    def __init__(self, x: np.ndarray, y: np.ndarray, pen_color, style: CustomStyle, symbol=None, name=None, *args):
+    def __init__(self, x: np.ndarray, y: np.ndarray, pen_color, style: Style, symbol=None, name=None, *args):
         super().__init__(*args)
         self.picture = QtGui.QPicture()
         self.style = copy.deepcopy(style)
@@ -58,7 +58,7 @@ class BaseCustomItem(pg.GraphicsObject):
 
 
 class CustomBarItem(BaseCustomItem):
-    def __init__(self, x: np.ndarray, y: np.ndarray, pen_color, style: CustomStyle, symbol=None, name=None, *args):
+    def __init__(self, x: np.ndarray, y: np.ndarray, pen_color, style: Style, symbol=None, name=None, *args):
         super().__init__(x, y, pen_color, style, symbol, name, *args)
         self._width = 0.9
         self.generatePicture()
@@ -107,9 +107,9 @@ class CustomBarItem(BaseCustomItem):
         self.informViewBoundsChanged()
 
 
-class CustomPlotItem(pg.GraphicsObject):
-    def __init__(self, x: np.ndarray, y: np.ndarray, pen_color, style: CustomStyle, symbol=None, name=None, *args):
-        super().__init__(*args)
+class CustomPlotItem(BaseCustomItem):
+    def __init__(self, x: np.ndarray, y: np.ndarray, pen_color, style: Style, symbol=None, name=None, *args):
+        super().__init__(x, y, pen_color, style, symbol=None, name=None, *args)
         self.picture = QtGui.QPicture()
         self.style = copy.deepcopy(style)
         self.style.line_pen = pen_color
@@ -241,6 +241,7 @@ class CustomAxis(pg.AxisItem):
     def __init__(self, val_mapping: dict, orientation):
         super().__init__(orientation)
         self.val_mapping = val_mapping
+        self.setTicks([[(k, v) for k, v in self.val_mapping.items()], [(k, v) for k, v in self.val_mapping.items()]])
 
     def tickStrings(self, values, scale, spacing):
         strings = []

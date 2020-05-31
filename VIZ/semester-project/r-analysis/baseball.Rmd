@@ -45,7 +45,9 @@ fieldingJoined <- fielding %>% left_join(master, by="Player ID code") %>% left_j
 
 Prepare tables with important stats
 ```{r}
-
+p1 <- battingJoined %>% filter(`First Name` == 'Kris' & `Last Name` == 'Bryant')
+p2 <- battingJoined %>% filter(`First Name` == 'Josh' & `Last Name` == 'Hamilton')
+p3 <- battingJoined %>% filter(`First Name` == 'Miguel' & `Last Name` == 'Cabrera')
 
 ```
 

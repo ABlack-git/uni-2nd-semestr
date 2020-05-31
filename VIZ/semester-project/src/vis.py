@@ -3,10 +3,9 @@ import numpy as np
 import pandas as pd
 
 from typing import Dict, Tuple, List, Union
-from src.plot import CustomPlot, CustomLegend, Slider, CustomBarItem, CustomPlotItem, CustomAxis
-from palettable.cartocolors.qualitative import Prism_10
+from src.plot import CustomGraph, CustomLegend, Slider, CustomBarItem, CustomPlotItem, CustomAxis
+from palettable.cartocolors.qualitative import Prism_10, Bold_10
 from PyQt5.QtWidgets import QVBoxLayout, QWidget
-from pyqtgraph import QtGui
 
 
 class TrellisStyle:
@@ -28,7 +27,7 @@ class TrellisStyle:
 
 
 DEFAULT_STYLE = TrellisStyle()
-DEFAULT_STYLE.palette = Prism_10
+DEFAULT_STYLE.palette = Bold_10
 DEFAULT_STYLE.background_color = 'w'
 DEFAULT_STYLE.line_width = 3
 DEFAULT_STYLE.title_size = '20pt'
@@ -57,7 +56,7 @@ class Trellis:
         self.layout.nextRow()
 
 
-class SharedPlotsTrellis(Trellis):
+class TrellisByStats(Trellis):
     def __init__(self, title='', cols=3):
         super().__init__(title=title)
         self.plots = []
@@ -69,7 +68,7 @@ class SharedPlotsTrellis(Trellis):
         self.add_title(self.cols)
         self.num_items = len(kwargs)
         for i, property_name in enumerate(properties):
-            plot = CustomPlot()
+            plot = CustomGraph()
             plot.setTitle(title=property_name, color=self.style.text_color, size=self.style.text_size)
             plot.style.line_width = self.style.line_width
             self.plots.append(plot)
@@ -94,36 +93,30 @@ class SharedPlotsTrellis(Trellis):
         self.layout.layout.setColumnMinimumWidth(self.cols + 1, legend.legend_width)
 
 
-class MultiplePlotsTrellis(Trellis):
-    def __init__(self, title, style=DEFAULT_STYLE):
-        super().__init__(title=title, style=style)
-
-        # self.scroll_area = pg.QtGui.QScrollArea()
-        # self.scroll_area.setWidget(self.view)
-
-    def plot(self, x_name: str, properties: Tuple[str, ...], **kwargs: Dict[str, pd.DataFrame]):
-        self.add_title(len(properties))
-        for i, (item_name, item) in enumerate(kwargs.items()):
-            self.layout.addLabel(text=item_name, colspan=len(properties), color=self.style.subtitle_color,
-                                 size=self.style.subtitle_size)
-            self.layout.nextRow()
-
-            for prop_name in properties:
-                plot = CustomPlot()
-                plot.setTitle(title=prop_name, color=self.style.text_color, size=self.style.text_size)
-                plot.style.line_width = self.style.line_width
-                self.layout.addItem(plot)
-                data_x = item[x_name].to_numpy()
-                data_y = item[prop_name].to_numpy()
-                plot.plot(x=data_x, y=data_y, color=self.style.palette.colors[i])
-
-            self.layout.nextRow()
-    #
-    # def show(self):
-    #     self.scroll_area.show()
+# class MultiplePlotsTrellis(Trellis):
+#     def __init__(self, title, style=DEFAULT_STYLE):
+#         super().__init__(title=title, style=style)
+#
+#     def plot(self, x_name: str, properties: Tuple[str, ...], **kwargs: Dict[str, pd.DataFrame]):
+#         self.add_title(len(properties))
+#         for i, (item_name, item) in enumerate(kwargs.items()):
+#             self.layout.addLabel(text=item_name, colspan=len(properties), color=self.style.subtitle_color,
+#                                  size=self.style.subtitle_size)
+#             self.layout.nextRow()
+#
+#             for prop_name in properties:
+#                 plot = CustomPlot()
+#                 plot.setTitle(title=prop_name, color=self.style.text_color, size=self.style.text_size)
+#                 plot.style.line_width = self.style.line_width
+#                 self.layout.addItem(plot)
+#                 data_x = item[x_name].to_numpy()
+#                 data_y = item[prop_name].to_numpy()
+#                 plot.plot(x=data_x, y=data_y, color=self.style.palette.colors[i])
+#
+#             self.layout.nextRow()
 
 
-class SideBySideTrellis(Trellis):
+class TrellisByPlayerAndStats(Trellis):
     def __init__(self, title, style: TrellisStyle = DEFAULT_STYLE):
         super().__init__(title=title, style=style)
         self.scroll_area = pg.QtGui.QScrollArea()
@@ -172,7 +165,7 @@ class SideBySideTrellis(Trellis):
         self.layout.nextRow()
         for prop_name in properties:
             for i, (item_name, item) in enumerate(data.items()):
-                plot = CustomPlot()
+                plot = CustomGraph()
                 if scale == 'normalize':
                     plot.setYRange(0, 1, padding=0)
                 elif scale == 'same_axis':
@@ -203,14 +196,14 @@ class TrellisWithSlider(Trellis):
 
         self.x_dict_val_item_name = {k: v for k, v in enumerate(self.data.keys())}
         self.x_dict_item_name_val = {v: k for k, v in enumerate(self.data.keys())}
-        self.item_dict: Dict[str, Dict[str, Union[CustomBarItem, CustomPlotItem, CustomPlot]]] = {}
+        self.item_dict: Dict[str, Dict[str, Union[CustomBarItem, CustomPlotItem, CustomGraph]]] = {}
 
         self.init_plot()
         self.slider.slider.valueChanged.connect(self.update_plots)
 
     def init_plot(self):
         for i, prop in enumerate(self.properties):
-            plot = CustomPlot(
+            plot = CustomGraph(
                 axisItems={"bottom": CustomAxis(val_mapping=self.x_dict_val_item_name, orientation='bottom')})
             plot.style.line_width = self.style.line_width
             plot.setTitle(title=prop, size=self.style.text_size, color=self.style.text_color)
