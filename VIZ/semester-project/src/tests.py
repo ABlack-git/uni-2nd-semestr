@@ -1,7 +1,7 @@
 from pyqtgraph.Qt import QtGui, QtCore
 import pyqtgraph as pg
 import pandas as pd
-from src.plot import CustomPlot
+from src.plot import CustomGraph
 from palettable.cartocolors.qualitative import Prism_10
 import numpy as np
 
@@ -42,9 +42,9 @@ l = layout.addLabel('Derek Jeter', colspan=3, )
 l.boundingRect()
 layout.nextRow()
 pg.setConfigOption('antialias', True)
-p1 = CustomPlot(Prism_10, title='BA', antialias=True)
-p2 = CustomPlot(Prism_10)
-p3 = CustomPlot(Prism_10)
+p1 = CustomGraph(Prism_10, title='BA', antialias=True)
+p2 = CustomGraph(Prism_10)
+p3 = CustomGraph(Prism_10)
 x = derek_jeter['Year'].to_numpy()
 y1 = derek_jeter['BA'].to_numpy()
 y2 = derek_jeter['PA'].to_numpy()
